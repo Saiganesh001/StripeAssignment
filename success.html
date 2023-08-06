@@ -1,0 +1,76 @@
+<!-- success.html (Frontend) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Success</title>
+  <!-- ... (previous CSS styles) ... -->
+</head>
+<body>
+  <!-- ... (previous HTML content) ... -->
+
+  <div class="plan-details">
+    <h2>Plan Details</h2>
+    <p><strong>Plan Name:</strong> <span id="planName"></span></p>
+    <p><strong>Plan Price:</strong> $<span id="planPrice"></span></p>
+    <p><strong>Billing Cycle:</strong> <span id="billingCycle"></span></p>
+    <p><strong>Status:</strong> <span id="planStatus"></span></p>
+	<button id="changePlanButton">Change Plan</button>
+    <button id="cancelPlanButton" disabled>Cancel Plan</button>
+  </div>
+
+  <script>
+    // Function to retrieve query parameters from URL
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryParams = {};
+      for (const [key, value] of urlParams.entries()) {
+        queryParams[key] = value;
+      }
+      return queryParams;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Retrieve and display the plan details from URL query parameters
+      const queryParams = getQueryParams();
+      document.getElementById('planName').textContent = queryParams.name;
+      document.getElementById('planPrice').textContent = queryParams.price;
+      document.getElementById('billingCycle').textContent = queryParams.duration;
+
+      // Display the plan status (active/cancelled)
+      document.getElementById('planStatus').textContent = queryParams.cancelled ? 'Cancelled' : 'Active';
+
+      // Enable the "Cancel Plan" button if the plan is active
+      const cancelPlanButton = document.getElementById('cancelPlanButton');
+      if (!queryParams.cancelled) {
+        cancelPlanButton.removeAttribute('disabled');
+      }
+
+      // Cancel Plan button click handler
+      cancelPlanButton.addEventListener('click', () => {
+        // Send a request to the server to cancel the plan
+        fetch('http://127.0.0.1:3000/api/cancelplan', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(queryParams)
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error cancelling the plan');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Update the plan status to "Cancelled" and disable the button
+            document.getElementById('planStatus').textContent = 'Cancelled';
+            cancelPlanButton.setAttribute('disabled', true);
+          })
+          .catch(error => {
+            console.error(error);
+          });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!-- subscription.html (Frontend) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Subscription Plans</title>
+</head>
+<body>
+  <h1>Subscription Plans</h1>
+  <div>
+    <label>
+      <input type="radio" name="duration" value="Yearly" checked> Yearly
+    </label>
+    <label>
+      <input type="radio" name="duration" value="Monthly"> Monthly
+    </label>
+  </div>
+  <table id="subscriptionTable">
+    <thead>
+      <tr>
+        <th>Plan</th>
+        <th>Duration</th>
+        <th>Devices</th>
+        <th>Price</th>
+        <th>Quality</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Table rows will be dynamically populated here -->
+    </tbody>
+  </table>
+
+  <script>
+    function populateTable(duration) {
+      fetch(`http://localhost:3000/api/plans?duration=${duration}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const subscriptionTable = document.getElementById('subscriptionTable');
+          subscriptionTable.innerHTML = ''; // Clear previous data
+
+          data.forEach(plan => {
+            const newRow = subscriptionTable.insertRow();
+            newRow.innerHTML = `
+              <td>${plan.name}</td>
+              <td>${plan.duration}</td>
+              <td>${plan.devices.join(', ')}</td>
+              <td>$${plan.price}</td>
+              <td>${plan.quality}</td>
+              <td><button onclick="selectPlan('${plan.name}', ${plan.price}, '${plan.duration}')">Select</button></td>
+            `;
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching subscription plans:', error);
+        });
+    }
+
+    // Function to retrieve query parameters from URL
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryParams = {};
+      for (const [key, value] of urlParams.entries()) {
+        queryParams[key] = value;
+      }
+      return queryParams;
+    }
+	
+	function selectPlan(name, price, duration) {
+      const selectedPlan = {
+        name: name,
+        price: price,
+        duration: duration,
+        ...getQueryParams() // Include user details in the selected plan object
+      };
+
+      // Encode the selected plan details to a URL query parameter
+      const queryParams = new URLSearchParams(selectedPlan).toString();
+
+      // Redirect to the creditdetails.html page with the plan details as query parameters
+      window.location.href = `creditdetails.html?${queryParams}`;
+    }
+
+    const durationRadios = document.querySelectorAll('input[name="duration"]');
+    durationRadios.forEach(radio => {
+      radio.addEventListener('change', event => {
+        const selectedDuration = event.target.value;
+        populateTable(selectedDuration);
+      });
+    });
+
+    // Initial population with the default value (Yearly)
+    populateTable('Yearly');
+  </script>
+</body>
+</html>
+

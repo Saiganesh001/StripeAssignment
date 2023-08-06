@@ -1,0 +1,71 @@
+<!-- login.html (Frontend) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Login</title>
+  <style>
+    /* ... (previous CSS styles) ... */
+  </style>
+</head>
+<body>
+  <header>
+    <h1>User Login</h1>
+  </header>
+
+  <div class="container">
+    <form id="loginForm">
+      <label for="email">Email:</label>
+      <input type="text" id="email" required><br>
+
+      <label for="password">Password:</label>
+      <input type="password" id="password" required><br>
+
+      <button type="submit">Login</button>
+
+      <div class="error-message" id="errorMessage"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Prepare the data to be sent to the server
+      const loginData = { email, password };
+
+      // Send the login details to the server using fetch
+      fetch('http://127.0.0.1:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(loginData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Invalid email or password');
+        }
+        return response.json();
+      })
+      .then(data => {
+	  console.log(data)
+        // Check if the login was successful (user exists in the database)
+        if (data.success) {
+          // Redirect to the subscription.html page with the user details as query parameters
+          const queryParams = new URLSearchParams(data.user).toString();
+          window.location.href = `subscription.html?email=${email}`;
+        } else {
+          // Display an error message if login failed (e.g., invalid credentials)
+          document.getElementById('errorMessage').textContent = 'Invalid email or password';
+        }
+      })
+      .catch(error => {
+        // Handle any errors that occurred during the API request (e.g., display an error message)
+        console.error(error);
+      });
+    });
+  </script>
+</body>
+</html>

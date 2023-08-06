@@ -1,0 +1,212 @@
+
+<!-- creditdetails.html (Frontend) -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Credit Card Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error-message {
+      color: #ff0000;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .order-summary {
+      margin-top: 20px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+
+    .order-summary h2 {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Enter Credit Card Details</h1>
+  </header>
+
+  <div class="container">
+    <!-- Display user details from the query parameters -->
+    <p>Welcome, <span id="userName"></span>! (<span id="userEmail"></span>)</p>
+
+    <form id="creditCardForm">
+      <label for="cardNumber">Card Number:</label>
+      <input type="text" id="cardNumber" required><br>
+
+      <label for="expiryDate">Expiry Date (MM/YY):</label>
+      <input type="text" id="expiryDate" required><br>
+
+      <label for="cvv">CVV:</label>
+      <input type="password" id="cvv" required><br>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div class="order-summary">
+      <h2>Order Summary</h2>
+      <p><strong>Plan Name:</strong> <span id="planName"></span></p>
+      <p><strong>Plan Price:</strong> $<span id="planPrice"></span></p>
+      <p><strong>Billing Cycle:</strong> <span id="billingCycle"></span></p>
+    </div>
+  </div>
+
+  <script>
+    // Function to retrieve query parameters from URL
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryParams = {};
+      for (const [key, value] of urlParams.entries()) {
+        queryParams[key] = value;
+      }
+      return queryParams;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Retrieve and display the user details from URL query parameters
+      const queryParams = getQueryParams();
+      //document.getElementById('userName').textContent = queryParams.name;
+      document.getElementById('email').textContent = queryParams.email;
+
+      // Retrieve and display the plan details from URL query parameters
+      document.getElementById('planName').textContent = queryParams.name;
+      document.getElementById('planPrice').textContent = queryParams.price;
+      document.getElementById('billingCycle').textContent = queryParams.duration;
+
+      // Fetch the user's credit card details from the server and autofill the form if available
+      fetch('http://127.0.0.1:3000/api/creditcard')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error fetching credit card details');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.creditCard && data.creditCard.cardNumber) {
+            document.getElementById('cardNumber').value = data.creditCard.cardNumber;
+            document.getElementById('expiryDate').value = data.creditCard.expiryDate;
+            document.getElementById('cvv').value = data.creditCard.cvv;
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    });
+
+    document.getElementById('creditCardForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const cardNumber = document.getElementById('cardNumber').value;
+      const expiryDate = document.getElementById('expiryDate').value;
+      const cvv = document.getElementById('cvv').value;
+
+      // Prepare the data to be sent to the server
+	  
+      const creditCardData = {
+        cardNumber,
+        expiryDate,
+        cvv,
+        ...getQueryParams() // Include user details in the credit card data
+      };
+	 //console.log(creditCardData);
+      // Send the credit card details to the server using fetch
+      fetch('http://127.0.0.1:3000/api/creditcard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(creditCardData)
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error saving credit card details');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Redirect to a success page or perform any desired actions upon successful submission
+		  const queryParams = new URLSearchParams(getQueryParams()).toString();
+          window.location.href = `success.html?${queryParams}`;
+		  console.log(getQueryParams());
+        })
+        .catch(error => {
+          // Handle any errors that occurred during the API request (e.g., display an error message)
+          console.error(error);
+        });
+    });
+	
+	function success(name, price, duration) {
+      const selectedPlan = {
+        name: name,
+        price: price,
+        duration: duration,
+        ...getQueryParams() // Include user details in the selected plan object
+      };
+
+      // Encode the selected plan details to a URL query parameter
+      const queryParams = new URLSearchParams(selectedPlan).toString();
+
+      // Redirect to the creditdetails.html page with the plan details as query parameters
+      window.location.href = `creditdetails.html?${queryParams}`;
+    }
+  </script>
+</body>
+</html>
+
