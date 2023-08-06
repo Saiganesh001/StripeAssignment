@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 3000;
   
 // Connect to the first MongoDB database for subscription plans
 //const plansDB_URI = 'mongodb://127.0.0.1:27017/plans_database';
-mongoose.connect(mongodb+srv://saiganeshvkk:saiteja123@cluster0.esxh2qv.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongodb+srv://saiganeshvkk:saiteja123@cluster0.esxh2qv.mongodb.net/', 
+		 { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to Subscription Plans MongoDB'))
   .catch(error => console.error('Subscription Plans MongoDB connection error:', error));
 
