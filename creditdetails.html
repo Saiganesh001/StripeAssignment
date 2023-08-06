@@ -85,8 +85,7 @@
   </header>
 
   <div class="container">
-    <!-- Display user details from the query parameters -->
-    <p>Welcome, <span id="userName"></span>! (<span id="userEmail"></span>)</p>
+
 
     <form id="creditCardForm">
       <label for="cardNumber">Card Number:</label>
@@ -117,38 +116,24 @@
       for (const [key, value] of urlParams.entries()) {
         queryParams[key] = value;
       }
+	  //console.log(queryParams);
       return queryParams;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       // Retrieve and display the user details from URL query parameters
-      const queryParams = getQueryParams();
+      const queryParam = getQueryParams();
+	  	  console.log(queryParam);
       //document.getElementById('userName').textContent = queryParams.name;
-      document.getElementById('email').textContent = queryParams.email;
+      //document.getElementById('email').textContent = queryParam.email;
 
       // Retrieve and display the plan details from URL query parameters
-      document.getElementById('planName').textContent = queryParams.name;
-      document.getElementById('planPrice').textContent = queryParams.price;
-      document.getElementById('billingCycle').textContent = queryParams.duration;
+      document.getElementById('planName').textContent = queryParam.name;
+      document.getElementById('planPrice').textContent = queryParam.price;
+      document.getElementById('billingCycle').textContent = queryParam.duration;
 
       // Fetch the user's credit card details from the server and autofill the form if available
-      fetch('http://127.0.0.1:3000/api/creditcard')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error fetching credit card details');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.creditCard && data.creditCard.cardNumber) {
-            document.getElementById('cardNumber').value = data.creditCard.cardNumber;
-            document.getElementById('expiryDate').value = data.creditCard.expiryDate;
-            document.getElementById('cvv').value = data.creditCard.cvv;
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
+      
     });
 
     document.getElementById('creditCardForm').addEventListener('submit', event => {
@@ -191,21 +176,7 @@
           console.error(error);
         });
     });
-	
-	function success(name, price, duration) {
-      const selectedPlan = {
-        name: name,
-        price: price,
-        duration: duration,
-        ...getQueryParams() // Include user details in the selected plan object
-      };
 
-      // Encode the selected plan details to a URL query parameter
-      const queryParams = new URLSearchParams(selectedPlan).toString();
-
-      // Redirect to the creditdetails.html page with the plan details as query parameters
-      window.location.href = `creditdetails.html?${queryParams}`;
-    }
   </script>
 </body>
 </html>
