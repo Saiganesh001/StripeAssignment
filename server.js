@@ -4,6 +4,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const stripe = require('stripe')('sk_test_51Nc35tSApB8bZ3vXeS0SpoFZRjn2mukl6WZLDwG10ya86jyqgAu9rhL8D2H6kGuCMm3pysaDS8svWOEpwpfarUaw00HutMsyk4'); // Replace with your Stripe Secret Key
+
+const basicPriceId = 'price_1Nc5Q5SApB8bZ3vXMJTlvXwP';
+const premiumPriceId = 'price_1Nc6eDSApB8bZ3vXsW9Xto63';
+const proPriceId = 'price_1Nc6eDSApB8bZ3vX2LWKsQnj';
+const enterprisePriceId = 'price_1Nc6eDSApB8bZ3vXQ1rVkvTr';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -143,13 +149,13 @@ app.get('/api/creditcard', async (req, res) => {
 
 // Route to handle credit card details submission
 app.post('/api/creditcard', async (req, res) => {
-  const { cardNumber, expiryDate, cvv, name, price, duration } = req.body;
+  const { stripeToken, cardNumber, expiryDate, cvv, name, price, duration } = req.body;
 	console.log(req.body);
   try {
     // Check if the user is authenticated and get the user ID
 	//console.log(req);
     const userId = req.body.email; // This assumes you are using authentication middleware to store the user information in the request object
-	//console.log(userId);
+	console.log(userId);
     // Find the user in the database and update their credit card details
     const user = await User.findOneAndUpdate(
       { email: userId },
@@ -157,15 +163,57 @@ app.post('/api/creditcard', async (req, res) => {
 		'plan.name': name, 'plan.price': price, 'plan.billingCycle': duration }},
       { new: true }
     );
-
+	billingCycle=duration;
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    return res.status(200).json({ message: 'Credit card details saved successfully' });
+    //return res.status(200).json({ message: 'Credit card details saved successfully' });
   } catch (error) {
     console.error('Error saving credit card details:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+  
+	try {
+	// Create a new customer in Stripe
+	console.log('creating')
+	const customer = await stripe.customers.create({
+	  email: req.body.email,
+	  source: req.body.stripeToken, // Stripe token generated from the credit card form
+	});
+	console.log('created');
+	// Create a subscription for the customer with the selected plan and billing cycle
+	//Price ID's are directly linked to duration and each plan already recurring type.
+	priceId=basicPriceId;
+	if (price==100) {
+      priceId=basicPriceId;
+    } 
+	else if(price==200){
+      priceId=premiumPriceId;
+    }
+	else if(price==30){
+      priceId=proPriceId;
+    }
+	else if(price==500){
+      priceId=enterprisePriceId;
+    }
+	
+	await stripe.subscriptions.create({
+	  customer: customer.id,
+	  items: [
+		{
+		  price: priceId, // The Stripe Price ID for the selected plan
+		},
+	  ],
+	  //billing_cycle_anchor: 'now', // Start the subscription immediately
+	  //billing_thresholds: billingCycle === 'Monthly' ? 'month' : 'year', // 'month' for Monthly, 'year' for Yearly
+	});
+
+	// Respond with a success message
+	res.json({ message: 'Credit card details and plan information saved successfully' });
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    res.status(500).json({ message: 'Error creating subscription' });
   }
 });
 
@@ -196,6 +244,39 @@ app.post('/api/cancelplan', (req, res) => {
 		  console.error('Error updating user plan reference:', error);
 		  res.status(500).json({ message: 'Error updating user plan reference' });
 		});
+
+    })
+    .catch(error => {
+      console.error('Error finding user:', error);
+      res.status(500).json({ message: 'Error finding user' });
+    });
+});
+
+
+
+
+
+
+// API endpoint to fetch plan details based on user's email
+app.get('/api/get-plan-details', async (req, res) => {
+ const { email } = req.query;
+  console.log('Email:', email); // Check if the email is correctly received
+
+  // Find the user by email and delete their credit card details
+  User.findOne({ email: email })
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+	
+	  // Update the user's credit card reference to null
+		if (user && user.plan) {
+		  // If the user and plan details are found, return the plan data
+		  res.json(user.plan);
+		} else {
+		  // If no plan details found, return an empty response
+		  res.json(null);
+		}
 
     })
     .catch(error => {

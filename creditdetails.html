@@ -1,4 +1,3 @@
-
 <!-- creditdetails.html (Frontend) -->
 <!DOCTYPE html>
 <html>
@@ -85,17 +84,10 @@
   </header>
 
   <div class="container">
-
-
     <form id="creditCardForm">
-      <label for="cardNumber">Card Number:</label>
-      <input type="text" id="cardNumber" required><br>
-
-      <label for="expiryDate">Expiry Date (MM/YY):</label>
-      <input type="text" id="expiryDate" required><br>
-
-      <label for="cvv">CVV:</label>
-      <input type="password" id="cvv" required><br>
+      <!-- Add the Stripe Elements card element container -->
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
 
       <button type="submit">Submit</button>
     </form>
@@ -107,8 +99,11 @@
       <p><strong>Billing Cycle:</strong> <span id="billingCycle"></span></p>
     </div>
   </div>
-
+  <script src="https://js.stripe.com/v3/"></script>
   <script>
+    // Replace this with your actual Stripe Publishable Key
+    const stripe = Stripe('pk_test_51Nc35tSApB8bZ3vX9n6Hxx1PlSfR0V82gMNSJPrFsWzGuPNdcA85mjBzZYkl3cIrRTM7l6ZUpaKlEjVgYvgwshWq00UA9A4shc');
+
     // Function to retrieve query parameters from URL
     function getQueryParams() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -116,68 +111,80 @@
       for (const [key, value] of urlParams.entries()) {
         queryParams[key] = value;
       }
-	  //console.log(queryParams);
       return queryParams;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       // Retrieve and display the user details from URL query parameters
       const queryParam = getQueryParams();
-	  	  console.log(queryParam);
-      //document.getElementById('userName').textContent = queryParams.name;
-      //document.getElementById('email').textContent = queryParam.email;
+	  
+
 
       // Retrieve and display the plan details from URL query parameters
       document.getElementById('planName').textContent = queryParam.name;
       document.getElementById('planPrice').textContent = queryParam.price;
       document.getElementById('billingCycle').textContent = queryParam.duration;
 
-      // Fetch the user's credit card details from the server and autofill the form if available
-      
-    });
+      // Create a Stripe card element
+      const elements = stripe.elements();
+      const cardElement = elements.create('card');
+      cardElement.mount('#card-element');
 
-    document.getElementById('creditCardForm').addEventListener('submit', event => {
-      event.preventDefault();
-      const cardNumber = document.getElementById('cardNumber').value;
-      const expiryDate = document.getElementById('expiryDate').value;
-      const cvv = document.getElementById('cvv').value;
-
-      // Prepare the data to be sent to the server
+      // Handle form submission
+      const form = document.getElementById('creditCardForm');
+      form.addEventListener('submit', async (event) => {
 	  
-      const creditCardData = {
-        cardNumber,
-        expiryDate,
-        cvv,
-        ...getQueryParams() // Include user details in the credit card data
-      };
-	 //console.log(creditCardData);
-      // Send the credit card details to the server using fetch
-      fetch('http://127.0.0.1:3000/api/creditcard', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(creditCardData)
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error saving credit card details');
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Redirect to a success page or perform any desired actions upon successful submission
-		  const queryParams = new URLSearchParams(getQueryParams()).toString();
-          window.location.href = `success.html?${queryParams}`;
-		  console.log(getQueryParams());
-        })
-        .catch(error => {
-          // Handle any errors that occurred during the API request (e.g., display an error message)
-          console.error(error);
-        });
-    });
 
+	  
+        event.preventDefault();
+
+        // Create a token when the form is submitted
+        const { token, error } = await stripe.createToken(cardElement);
+
+        if (error) {
+          // Handle error, e.g., display an error message to the user
+          const errorElement = document.getElementById('card-errors');
+          errorElement.textContent = error.message;
+        } else {
+			  const cardNumber = 1;//need to change based on stripe docs
+			  const expiryDate = 11;
+			  const cvv = 111;
+          // Prepare the data to be sent to the server
+          const creditCardData = {
+            stripeToken: token.id,
+					  cardNumber,
+		  expiryDate,
+		  cvv,
+            ...getQueryParams() // Include user details in the credit card data
+          };
+
+          // Send the credit card details to the server using fetch
+          fetch('http://127.0.0.1:3000/api/creditcard', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(creditCardData)
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error saving credit card details');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Redirect to a success page or perform any desired actions upon successful submission
+            const queryParams = new URLSearchParams(getQueryParams()).toString();
+            window.location.href = `success.html?${queryParams}`;
+          })
+          .catch(error => {
+            // Handle any errors that occurred during the API request (e.g., display an error message)
+            console.error(error);
+          });
+        }
+      });
+    });
   </script>
+
 </body>
 </html>
-

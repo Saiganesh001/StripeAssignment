@@ -32,12 +32,46 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Retrieve and display the plan details from URL query parameters
       const queryParams = getQueryParams();
-      document.getElementById('planName').textContent = queryParams.name;
-      document.getElementById('planPrice').textContent = queryParams.price;
-      document.getElementById('billingCycle').textContent = queryParams.duration;
+	  const email = queryParams.email;
+	  console.log(email);
+	  //Plan details from url
+      //document.getElementById('planName').textContent = queryParams.name;
+      //document.getElementById('planPrice').textContent = queryParams.price;
+      //document.getElementById('billingCycle').textContent = queryParams.duration;
+	  
+	  
 
-      // Display the plan status (active/cancelled)
-      document.getElementById('planStatus').textContent = queryParams.cancelled ? 'Cancelled' : 'Active';
+      // Fetch plan details from the server based on the user's email
+      fetch('http://127.0.0.1:3000/api/get-plan-details?email='+email)
+		  .then(response => {
+			if (!response.ok) {
+			  throw new Error('Error fetching plan details');
+			}
+			return response.json();
+      })
+      .then(data => {
+        if (data) {
+          // Plan details are available in the response
+          document.getElementById('planName').textContent = data.name;
+          document.getElementById('planPrice').textContent = `$${data.price}`;
+          document.getElementById('billingCycle').textContent = data.billingCycle;
+          document.getElementById('planStatus').textContent =  'Active';
+
+          // Enable the "Cancel Plan" button if the plan is active
+          const cancelPlanButton = document.getElementById('cancelPlanButton');
+          cancelPlanButton.removeAttribute('disabled');
+          
+        } else {
+          // No plan details found for the user
+          document.getElementById('planName').textContent = 'No plan available';
+          document.getElementById('planPrice').textContent = '';
+          document.getElementById('billingCycle').textContent = '';
+          document.getElementById('planStatus').textContent = 'Cancelled';
+        }
+      })
+      .catch(error => {
+        console.error(error);
+      });
 
       // Enable the "Cancel Plan" button if the plan is active
       const cancelPlanButton = document.getElementById('cancelPlanButton');
