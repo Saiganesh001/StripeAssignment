@@ -1,24 +1,87 @@
-<!-- login.html (Frontend) -->
 <!DOCTYPE html>
 <html>
 <head>
   <title>User Login</title>
   <style>
-    /* ... (previous CSS styles) ... */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin: 0;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error-message {
+      color: #ff0000;
+      font-size: 14px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>User Login</h1>
+	<a href="index.html"><button>Home</button></a>
   </header>
 
   <div class="container">
     <form id="loginForm">
       <label for="email">Email:</label>
-      <input type="text" id="email" required><br>
+      <input type="text" id="email" required>
 
       <label for="password">Password:</label>
-      <input type="password" id="password" required><br>
+      <input type="password" id="password" required>
 
       <button type="submit">Login</button>
 
@@ -50,7 +113,6 @@
         return response.json();
       })
       .then(data => {
-	  console.log(data)
         // Check if the login was successful (user exists in the database)
         if (data.success) {
           // Redirect to the subscription.html page with the user details as query parameters

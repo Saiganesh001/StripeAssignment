@@ -2,20 +2,72 @@
 <!DOCTYPE html>
 <html>
 <head>
+<head>
   <title>Success</title>
-  <!-- ... (previous CSS styles) ... -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .plan-details {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+
+    strong {
+      font-weight: bold;
+    }
+
+    p {
+      margin: 10px 0;
+    }
+
+    button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button[disabled] {
+      background-color: #ddd;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <!-- ... (previous HTML content) ... -->
 
-  <div class="plan-details">
-    <h2>Plan Details</h2>
-    <p><strong>Plan Name:</strong> <span id="planName"></span></p>
-    <p><strong>Plan Price:</strong> $<span id="planPrice"></span></p>
-    <p><strong>Billing Cycle:</strong> <span id="billingCycle"></span></p>
-    <p><strong>Status:</strong> <span id="planStatus"></span></p>
-	<button id="changePlanButton">Change Plan</button>
-    <button id="cancelPlanButton" disabled>Cancel Plan</button>
+  <div class="container">
+    <div class="plan-details">
+      <h2>Plan Details</h2>
+      <p><strong>Plan Name:</strong> <span id="planName"></span></p>
+      <p><strong>Plan Price:</strong> $<span id="planPrice"></span></p>
+      <p><strong>Billing Cycle:</strong> <span id="billingCycle"></span></p>
+      <p><strong>Status:</strong> <span id="planStatus"></span></p>
+      <button id="changePlanButton">Change Plan</button>
+      <button id="cancelPlanButton" disabled>Cancel Plan</button>
+    </div>
   </div>
 
   <script>
